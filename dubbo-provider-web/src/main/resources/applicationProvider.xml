@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>    
+<beans xmlns="http://www.springframework.org/schema/beans"    
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:dubbo="http://code.alibabatech.com/schema/dubbo"    
+	xsi:schemaLocation="http://www.springframework.org/schema/beans    
+	http://www.springframework.org/schema/beans/spring-beans.xsd    
+	http://code.alibabatech.com/schema/dubbo    
+	http://code.alibabatech.com/schema/dubbo/dubbo.xsd ">     
+	<!-- 提供方应用信息，用于计算依赖关系 -->    
+	<dubbo:application name="dubbo_provider"  />      
+	<!-- 使用multicast广播注册中心暴露服务地址     
+		<dubbo:registry address="multicast://localhost:1234" />-->     
+	<!-- 使用zookeeper注册中心暴露服务地址 -->    
+	<dubbo:registry address="zookeeper://127.0.0.1:2181" check="false" />       
+	<!-- 用dubbo协议在20880端口暴露服务 -->    
+	<dubbo:protocol name="dubbo" port="29018" />   
+
+	<!-- 服务分组 begin-->
+	<bean id="dubboTestServiceImpl1" class="com.study.test.service.DubboTestServiceImpl"/>
+	<bean id="dubboTestServiceImpl2" class="com.study.test.service.DubboTestService1Impl"/>
+	<dubbo:service interface="com.study.test.service.DubboTestService" ref="dubboTestServiceImpl1" group="dubboTestServiceImpl1"/>
+	<dubbo:service interface="com.study.test.service.DubboTestService" ref="dubboTestServiceImpl2" group="dubboTestServiceImpl2"/>
+    <!-- 服务分组 end-->
+	
+	<!--参数验证begin  -->
+	<bean id="validationService" class="com.study.service.ValidationServiceImpl"/>
+	<dubbo:service interface="com.study.service.ValidationService" ref="validationService"
+		validation="true"/>
+	<!--参数验证end  -->
+             
+    <!--结果缓存begin  -->              
+	<bean id="cacheService" class="com.study.service.CacheServiceImpl"/>
+	<dubbo:service interface="com.study.service.CacheService" ref="cacheService"/>
+	<!--结果缓存end  -->
+	
+	<!--泛化调用begin-->
+    <dubbo:service interface="com.study.service.DemoService" ref="demoService" protocol="dubbo"/>
+    <bean id="demoService" class="com.study.service.DemoServiceImpl"/>
+    <!--泛化调用end-->
+    
+    <!--实现泛化调用begin  -->
+    <bean id="genericService" class="com.study.service.MyGenericService" />
+	<dubbo:service interface="com.alibaba.dubbo.rpc.service.GenericService" ref="genericService" />
+	<!--实现泛化调用end  -->
+	
+	<!--异步调用begin  -->
+	<bean id="asyncServiceImpl" class="com.study.service.AsyncServiceImpl"/>
+	<dubbo:service interface="com.study.service.AsyncService" ref="asyncServiceImpl"/>
+	<!--异步调用end  -->
+	
+	<!--参数回调begin  -->
+	<bean id="callbackService" class="com.study.callback.CallbackServiceImpl"/>
+    <dubbo:service interface="com.study.callback.CallbackService" ref="callbackService"
+                   connections="1" callbacks="1000">
+        <dubbo:method name="addListener">
+            <dubbo:argument index="1" callback="true"/>
+            <!--也可以通过指定类型的方式-->
+            <!--<dubbo:argument type="com.demo.CallbackListener" callback="true" />-->
+        </dubbo:method>
+    </dubbo:service>
+    <!--参数回调end  -->
+    
+    <!-- 事件通知接口参与接口begin -->
+    <bean id="commonImpl" class="com.study.event.CommonImpl"/>
+	<dubbo:service interface="com.study.event.Common" ref="commonImpl"/>
+	<!-- 事件通知接口参与接口end -->
+	
+	<!--本地存根begin  -->
+	<bean id="stubServiceImpl" class="com.study.stub.StubServiceImpl"/>
+	<dubbo:service interface="com.study.stub.StubService" ref="stubServiceImpl"/>
+	<!--本地存根end  -->
+	
+	<!--本地伪装begin  -->
+	<bean id="mockServiceImpl" class="com.study.mock.MockServiceImpl"/>
+	<dubbo:service interface="com.study.mock.MockService" ref="mockServiceImpl"/>
+	<!--本地伪装end  -->
+	
+	<!-- 扫描注解包路径，多个包用逗号分隔，不填pacakge表示扫描当前ApplicationContext中所有的类 -->
+	<dubbo:annotation package="com.study.service" />
+</beans>   
